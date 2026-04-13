@@ -1,24 +1,36 @@
 <?php
+
 use Illuminate\Database\Seeder;
-use App\Models\Users;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str; 
+use Illuminate\Support\Str;
+use Illuminate\Support\Arr;
+
 class UsersSeeder extends Seeder
 {
-    public function run(){
-        //$user = ['user_login' => 'user1', 'user_pass' => 'user1', 'user_name' => 'Артём Шемелин', 'user_country' => 'Россия', 'user_city' => 'Череповец', 'user_phone' => '88005553535', 'user_gmail' => 'user1@gmail.com', 'user_avatar' => '', 'user_status' => ''];
-        for($i = 0; $i<10; $i++){
-            DB::table('Users')->insert(
-                ['user_login' => Str::random(10),
-                'user_pass' => Str::random(10),
-                'user_name' => Str::random(10).' '.Str::random(10),
-                'user_country' => 'Россия',
-                'user_city' => Str::random(10),
-                'user_phone' => Str::random(11,'0123456789'),
-                'user_gmail' => Str::random(10).'@gmail.com',
-                'user_avatar' => '',
-                'user_status' => '']
-            );
+    public function run()
+    {
+        $existingCount = DB::table('users')->count();
+        
+        if ($existingCount >= 20) {
+            echo "Users table already has {$existingCount} records. Skipping...\n";
+            return;
+        }
+        
+        $needed = 20 - $existingCount;
+        echo "Adding {$needed} new users...\n";
+        
+        for($i = 0; $i < $needed; $i++){
+            DB::table('users')->insertOrIgnore([
+                'user_login' => Str::random(10),
+                'user_pass' => bcrypt('password123'),
+                'user_name' => Str::random(8) . ' ' . Str::random(8),
+                'user_country' => Arr::random(['Россия', 'США', 'Япония', 'Китай', 'Германия', 'Франция']),
+                'user_city' => Str::random(8),
+                'user_phone' => '7' . rand(9000000000, 9999999999),
+                'user_gmail' => Str::random(8) . '@gmail.com',
+                'user_avatar' => null,
+                'user_status' => null,
+            ]);
         }
     }
 }
