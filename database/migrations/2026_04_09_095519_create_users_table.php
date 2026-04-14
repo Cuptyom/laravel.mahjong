@@ -17,7 +17,7 @@ class CreateUsersTable extends Migration
             $table->string('user_city')->nullable();
             $table->string('user_phone')->unique()->nullable();
             $table->string('user_gmail')->unique()->nullable();
-            $table->string('user_avatar')->nullable();
+            $table->string('user_avatar')->nullable()->default('default.jpg');
             $table->string('user_status')->nullable();
         });
     }

@@ -23,7 +23,7 @@ class UsersSeeder extends Seeder
                 'user_city' => '',
                 'user_phone' => null,
                 'user_gmail' =>'test@gmail.com',
-                'user_avatar' => null,
+                'user_avatar' => 'default.jpg',
                 'user_status' => null,
             ]);
         DB::table('users')->insert([
@@ -34,7 +34,7 @@ class UsersSeeder extends Seeder
                 'user_city' => '',
                 'user_phone' => null,
                 'user_gmail' =>'blocked@gmail.com',
-                'user_avatar' => null,
+                'user_avatar' => 'default.jpg',
                 'user_status' => 'Blocked',
             ]);
         $needed = 20 - $existingCount;
@@ -49,7 +49,7 @@ class UsersSeeder extends Seeder
                 'user_city' => Str::random(8),
                 'user_phone' => '7' . rand(9000000000, 9999999999),
                 'user_gmail' => Str::random(8) . '@gmail.com',
-                'user_avatar' => null,
+                'user_avatar' => 'default.jpg',
                 'user_status' => null,
             ]);
         }

@@ -52,7 +52,7 @@
                                 👤 {{ $user->user_name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#">Мой профиль</a></li>
+                                <li><a class="dropdown-item" href="/profile">Мой профиль</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{{ route('logout') }}">Выйти</a></li>
                             </ul>

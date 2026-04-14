@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RoundsSeeder::class,
             RoundResultsSeeder::class,
             EventInvitationNotificationSeeders::class,
+            GameResultsSeeder::class
         ]);
         
         echo "\nDatabase seeding completed!\n";
