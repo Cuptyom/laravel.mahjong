@@ -15,14 +15,35 @@ class UsersSeeder extends Seeder
             echo "Users table already has {$existingCount} records. Skipping...\n";
             return;
         }
-        
+        DB::table('users')->insert([
+                'user_login' => 'admin',
+                'user_pass' => '1234',
+                'user_name' => 'admin',
+                'user_country' => '',
+                'user_city' => '',
+                'user_phone' => null,
+                'user_gmail' =>'test@gmail.com',
+                'user_avatar' => null,
+                'user_status' => null,
+            ]);
+        DB::table('users')->insert([
+                'user_login' => 'blocked',
+                'user_pass' => '1234',
+                'user_name' => 'blocked',
+                'user_country' => '',
+                'user_city' => '',
+                'user_phone' => null,
+                'user_gmail' =>'blocked@gmail.com',
+                'user_avatar' => null,
+                'user_status' => 'Blocked',
+            ]);
         $needed = 20 - $existingCount;
         echo "Adding {$needed} new users...\n";
         
         for($i = 0; $i < $needed; $i++){
             DB::table('users')->insertOrIgnore([
                 'user_login' => Str::random(10),
-                'user_pass' => bcrypt('password123'),
+                'user_pass' => Str::random(10),
                 'user_name' => Str::random(8) . ' ' . Str::random(8),
                 'user_country' => Arr::random(['Россия', 'США', 'Япония', 'Китай', 'Германия', 'Франция']),
                 'user_city' => Str::random(8),

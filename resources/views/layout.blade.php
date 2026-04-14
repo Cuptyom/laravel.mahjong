@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Mahjong Rating')</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
@@ -23,10 +22,12 @@
         .main-content {
             min-height: calc(100vh - 140px);
         }
+        .alert {
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
-    <!-- Навигация -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('home') }}">
@@ -37,33 +38,63 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home') }}">Рейтинги</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Игроки</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Войти</a>
-                    </li>
+                    @php
+                        $userId = request()->cookie('user_id');
+                        $user = null;
+                        if ($userId) {
+                            $user = DB::table('users')->where('user_id', $userId)->first();
+                        }
+                    @endphp
+                    
+                    @if($user)
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                👤 {{ $user->user_name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">Мой профиль</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ route('logout') }}">Выйти</a></li>
+                            </ul>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary text-white px-3 ms-2" href="{{ route('login') }}" style="border-radius: 20px;">Войти</a>
+                        </li>
+                    @endif
                 </ul>
             </div>
         </div>
     </nav>
     
-    <!-- Основной контент -->
     <div class="main-content">
+        @if(session('success'))
+            <div class="container mt-3">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        @endif
+        
+        @if(session('error'))
+            <div class="container mt-3">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        @endif
+        
         @yield('content')
     </div>
     
-    <!-- Подвал -->
     <footer class="bg-white py-4 mt-5">
         <div class="container text-center text-muted">
             <small>Mahjong Rating System &copy; {{ date('Y') }}</small>
         </div>
     </footer>
     
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

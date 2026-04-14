@@ -9,23 +9,20 @@ class MainController extends Controller
 {
     public function index(Request $request)
     {
-        // Получаем поисковый запрос
         $search = $request->input('search');
         
-        // Строим запрос
         $query = DB::table('events')
             ->where('event_global_visability', 1)
             ->where('isEnd', 0);
         
-        // Если есть поисковый запрос, фильтруем по названию
+        // поиск
         if ($search) {
             $query->where('event_name', 'like', '%' . $search . '%');
         }
         
-        // Пагинация по 10 записей на страницу
+        // Пагинация
         $events = $query->paginate(10);
         
-        // Передаём данные в представление
         return view('index', [
             'events' => $events,
             'search' => $search
