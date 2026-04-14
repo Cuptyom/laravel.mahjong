@@ -16,7 +16,7 @@ class CreateEventsTable extends Migration
             $table->boolean('event_global_visability')->default(true);
             $table->boolean('rating_table_visability')->default(true);
             $table->integer('min_games')->default(0);
-            $table->integer('start_rating')->default(1500);
+            $table->integer('start_score')->default(1500);
             $table->integer('uma_1st')->default(10000);
             $table->integer('uma_2nd')->default(5000);
             $table->integer('uma_3rd')->default(-5000);

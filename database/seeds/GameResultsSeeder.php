@@ -36,7 +36,7 @@ class GameResultsSeeder extends Seeder
                     DB::table('game_results')->insert([
                         'game_id' => $gameId,
                         'user_id' => $userId,
-                        'end_score' => rand(10000, 50000),
+                        'end_score' => rand(-10000, 50000),
                         'rating_change' => rand(-10000, 10000),
                     ]);
                     $inserted++;

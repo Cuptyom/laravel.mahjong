@@ -27,7 +27,7 @@ class EventsSeeder extends Seeder
                 'event_global_visability' => rand(0,1),
                 'rating_table_visability' => rand(0,1),
                 'min_games' => rand(0,50),
-                'start_rating' => rand(25,35) * 1000,
+                'start_score' => rand(25,35) * 1000,
                 'uma_1st' => rand(-10, 10) * 1000,
                 'uma_2nd' => rand(-10, 10) * 1000,
                 'uma_3rd' => rand(-10, 10) * 1000,

@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EventController;
 //главная
 Route::get('/', [MainController::class, 'index'])->name('home');
 //вход/рег
@@ -17,3 +18,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
 
+// Таблии ивентов
+// Страницы события
+Route::get('/event/{event_id}/rating', [EventController::class, 'rating'])->name('event.rating');
+Route::get('/event/{event_id}/description', [EventController::class, 'description'])->name('event.description');
+Route::get('/event/{event_id}/rules', [EventController::class, 'rules'])->name('event.rules');

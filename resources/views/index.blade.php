@@ -32,10 +32,12 @@
                         <div class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between align-items-center">
                                 <div>
-                                    <h5 class="mb-1">{{ $event->event_name }}</h5>
+                                    <a href="{{ route('event.rating', $event->event_id) }}" class="text-decoration-none">
+                                    <h5 class="mb-1 text-dark">{{ $event->event_name }}</h5>
+                                </a>
                                     <p class="mb-1 text-muted small">
                                         Тип: {{ $event->event_type }} | 
-                                        Стартовый рейтинг: {{ number_format($event->start_rating) }} |
+                                        Стартовый рейтинг: {{ number_format($event->start_score) }} |
                                         Мин. игр: {{ $event->min_games }}
                                     </p>
                                     @if($event->event_description)
