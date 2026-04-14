@@ -11,12 +11,12 @@ class EventsSeeder extends Seeder
     {
         $existingCount = DB::table('events')->count();
         
-        if ($existingCount >= 15) {
+        if ($existingCount >= 100) {
             echo "Events table already has {$existingCount} records. Skipping...\n";
             return;
         }
         
-        $needed = 15 - $existingCount;
+        $needed = 100 - $existingCount;
         echo "Adding {$needed} new events...\n";
         
         for($i = 0; $i < $needed; $i++){
