@@ -157,10 +157,9 @@ class EventController extends Controller
             }
         }
     }
-    
     return view('event.games', [
         'event' => $event,
         'games' => $games,
     ]);
-}
+    }
 }
