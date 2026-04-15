@@ -9,7 +9,7 @@ class RoundsSeeder extends Seeder
     {
         $gameIds = DB::table('games')->pluck('game_id')->toArray();
         $roundNames = ['East 1', 'East 2', 'East 3', 'East 4', 'South 1', 'South 2', 'South 3', 'South 4'];
-        $endTypes = ['ron', 'tsumo', 'ryuukyoku'];
+        $endTypes = ['ron', 'tsumo', 'draw', 'nagasi-mangan', 'abortive-draw'];
         
         if (empty($gameIds)) {
             echo "No games found. Run GamesSeeder first.\n";

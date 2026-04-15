@@ -12,8 +12,7 @@ class CreateEventPlayersTable extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained('events', 'event_id')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->timestamps();
+            $table->enum('status', ['admin', 'judge', 'player']);
             
             $table->unique(['event_id', 'user_id']);
         });

@@ -23,6 +23,11 @@
                         ⚙️ Правила
                     </a>
                 </li>
+                <li>
+                <a href="{{ route('event.games', $event->event_id) }}" class="nav-link">
+                        🎮 История игр
+                    </a>
+                </li>
             </ul>
         </div>
     </div>

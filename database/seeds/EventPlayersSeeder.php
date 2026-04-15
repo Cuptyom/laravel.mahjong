@@ -9,7 +9,7 @@ class EventPlayersSeeder extends Seeder
     {
         $eventIds = DB::table('events')->pluck('event_id')->toArray();
         $userIds = DB::table('users')->pluck('user_id')->toArray();
-        $statuses = ['pending', 'approved', 'rejected'];
+        $statuses = ['admin', 'judge', 'player'];
         
         if (empty($eventIds) || empty($userIds)) {
             echo "No events or users found. Run UsersSeeder and EventsSeeder first.\n";

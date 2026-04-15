@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-4">
-    <!-- Навигация по вкладкам -->
+        <!-- Навигация по вкладкам -->
     <div class="row mb-4">
         <div class="col-12">
             <ul class="nav nav-tabs">
@@ -21,6 +21,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('event.rules', $event->event_id) }}">
                         ⚙️ Правила
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('event.games', $event->event_id) }}">
+                        🎮 История игр
                     </a>
                 </li>
             </ul>

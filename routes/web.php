@@ -23,3 +23,4 @@ Route::post('/profile/update', [ProfileController::class, 'update'])->name('prof
 Route::get('/event/{event_id}/rating', [EventController::class, 'rating'])->name('event.rating');
 Route::get('/event/{event_id}/description', [EventController::class, 'description'])->name('event.description');
 Route::get('/event/{event_id}/rules', [EventController::class, 'rules'])->name('event.rules');
+Route::get('/event/{event_id}/games', [EventController::class, 'games'])->name('event.games');

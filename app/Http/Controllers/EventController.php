@@ -118,4 +118,49 @@ class EventController extends Controller
         
         return view('event.rules', compact('event'));
     }
+    public function games(Request $request, $event_id)
+{
+    // Проверяем, существует ли событие
+    $event = DB::table('events')->where('event_id', $event_id)->first();
+    
+    if (!$event) {
+        abort(404, 'Событие не найдено');
+    }
+    
+    // Получаем все игры этого события с пагинацией
+    $games = DB::table('games')
+        ->where('event_id', $event_id)
+        ->orderBy('game_date', 'desc')
+        ->orderBy('game_id', 'desc')
+        ->paginate(10);
+    
+    // Для каждой игры собираем раунды
+    foreach ($games as $game) {
+        $game->rounds = DB::table('rounds')
+            ->where('game_id', $game->game_id)
+            ->orderBy('serian_number', 'asc')
+            ->get();
+        
+        // Для каждого раунда собираем результаты
+        foreach ($game->rounds as $round) {
+            $round->results = DB::table('round_results')
+                ->where('round_id', $round->round_id)
+                ->get();
+            
+            // Добавляем информацию об игроках
+            foreach ($round->results as $result) {
+                $player = DB::table('users')
+                    ->where('user_id', $result->user_id)
+                    ->first();
+                $result->user_name = $player->user_name ?? 'Неизвестный';
+                $result->user_login = $player->user_login ?? '';
+            }
+        }
+    }
+    
+    return view('event.games', [
+        'event' => $event,
+        'games' => $games,
+    ]);
+}
 }
