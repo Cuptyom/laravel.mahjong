@@ -26,6 +26,9 @@ Route::get('/event/{event_id}/rating', [EventController::class, 'rating'])->name
 Route::get('/event/{event_id}/description', [EventController::class, 'description'])->name('event.description');
 Route::get('/event/{event_id}/rules', [EventController::class, 'rules'])->name('event.rules');
 Route::get('/event/{event_id}/games', [EventController::class, 'games'])->name('event.games');
+//редачить
+Route::get('/event/{event_id}/edit', [EventController::class, 'edit'])->name('event.edit');
+Route::post('/event/{event_id}/update', [EventController::class, 'update'])->name('event.update');
 //my events
 // Мои события (сайдбар)
 Route::get('/my_events', [MyEventsController::class, 'index'])->name('my.events');

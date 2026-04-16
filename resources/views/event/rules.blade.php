@@ -5,32 +5,7 @@
 @section('content')
 <div class="container py-4">
     <!-- Навигация по вкладкам -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <ul class="nav nav-tabs">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('event.rating', $event->event_id) }}">
-                        📊 Рейтинг
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('event.description', $event->event_id) }}">
-                        📝 Описание
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ route('event.rules', $event->event_id) }}">
-                        ⚙️ Правила
-                    </a>
-                </li>
-                <li>
-                <a href="{{ route('event.games', $event->event_id) }}" class="nav-link">
-                        🎮 История игр
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
+    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin ?? false])
     
     <!-- Заголовок -->
     <div class="row mb-4">
