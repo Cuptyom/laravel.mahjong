@@ -27,15 +27,17 @@ class EventController extends Controller
         // Проверяем доступ к рейтингу
         $canViewRating = true;
         
+        // Если рейтинг скрыт от всех
         if ($event->rating_table_visability == 0) {
+            // Если пользователь не авторизован
             if (!$user) {
                 $canViewRating = false;
             } else {
+                // Проверяем, участвует ли пользователь в событии (есть ли запись в event_players)
                 $isParticipant = DB::table('event_players')
                     ->where('event_id', $eventId)
                     ->where('user_id', $userId)
-                    ->where('status', 'approved')
-                    ->exists();
+                    ->exists(); // <-- Убрана проверка на статус 'approved'
                 
                 if (!$isParticipant) {
                     $canViewRating = false;
@@ -46,7 +48,7 @@ class EventController extends Controller
         if (!$canViewRating) {
             return view('event.rating_denied', compact('event'));
         }
-        
+         
         // Получаем всех игроков и сумму их rating_change в этом событии
         $players = DB::table('game_results')
             ->join('games', 'game_results.game_id', '=', 'games.game_id')

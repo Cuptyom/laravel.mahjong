@@ -103,7 +103,7 @@
         @endif
         
         <div class="row">
-            <!-- Сайдбар (показывается не на всех страницах) -->
+            <!-- Сайдбар -->
             @if(!in_array(Route::currentRouteName(), ['login', 'register']))
                 <div class="col-md-3">
                     <div class="sidebar">
@@ -113,6 +113,9 @@
                                 🏠 Главная
                             </a>
                             @if($user)
+                                <a class="nav-link {{ Route::currentRouteName() == 'my.events' ? 'active' : '' }}" href="{{ route('my.events') }}">
+                                    📋 Мои события
+                                </a>
                                 <a class="nav-link {{ Route::currentRouteName() == 'profile.show' ? 'active' : '' }}" href="{{ route('profile.show') }}">
                                     ✏️ Редактировать профиль
                                 </a>
@@ -124,10 +127,10 @@
                     @yield('content')
                 </div>
             @else
-                <div class="col-12">
-                    @yield('content')
-                </div>
-            @endif
+        <div class="col-12">
+        @yield('content')
+    </div>
+@endif
         </div>
     </div>
     
