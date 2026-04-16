@@ -19,11 +19,31 @@
             margin-top: auto;
             border-top: 1px solid #dee2e6;
         }
+        /* Стили для сайдбара */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+        .sidebar .nav-link {
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
         .main-content {
             min-height: calc(100vh - 140px);
-        }
-        .alert {
-            border-radius: 8px;
         }
     </style>
 </head>
@@ -52,7 +72,7 @@
                                 👤 {{ $user->user_name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/profile">Мой профиль</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.show') }}">Мой профиль</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="{{ route('logout') }}">Выйти</a></li>
                             </ul>
@@ -67,26 +87,48 @@
         </div>
     </nav>
     
-    <div class="main-content">
+    <div class="container mt-4">
         @if(session('success'))
-            <div class="container mt-3">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         
         @if(session('error'))
-            <div class="container mt-3">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
         
-        @yield('content')
+        <div class="row">
+            <!-- Сайдбар (показывается не на всех страницах) -->
+            @if(!in_array(Route::currentRouteName(), ['login', 'register']))
+                <div class="col-md-3">
+                    <div class="sidebar">
+                        <h6 class="text-muted mb-3">МЕНЮ</h6>
+                        <nav class="nav flex-column">
+                            <a class="nav-link {{ Route::currentRouteName() == 'home' ? 'active' : '' }}" href="{{ route('home') }}">
+                                🏠 Главная
+                            </a>
+                            @if($user)
+                                <a class="nav-link {{ Route::currentRouteName() == 'profile.show' ? 'active' : '' }}" href="{{ route('profile.show') }}">
+                                    ✏️ Редактировать профиль
+                                </a>
+                            @endif
+                        </nav>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    @yield('content')
+                </div>
+            @else
+                <div class="col-12">
+                    @yield('content')
+                </div>
+            @endif
+        </div>
     </div>
     
     <footer class="bg-white py-4 mt-5">
