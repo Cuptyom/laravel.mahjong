@@ -116,8 +116,14 @@
                                 <a class="nav-link {{ Route::currentRouteName() == 'my.events' ? 'active' : '' }}" href="{{ route('my.events') }}">
                                     📋 Мои события
                                 </a>
+                                <a class="nav-link {{ Route::currentRouteName() == 'create_event.form' ? 'active' : '' }}" href="{{ route('create_event.form') }}">
+                                    ➕ Создать событие
+                                </a>
                                 <a class="nav-link {{ Route::currentRouteName() == 'profile.show' ? 'active' : '' }}" href="{{ route('profile.show') }}">
                                     ✏️ Редактировать профиль
+                                </a>
+                                <a class="nav-link {{ Route::currentRouteName() == 'notifications.index' ? 'active' : '' }}" href="{{ route('notifications.index') }}">
+                                    🔔 Уведомления
                                 </a>
                             @endif
                         </nav>

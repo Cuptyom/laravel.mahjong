@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\MyEventsController;
+use App\Http\Controllers\CreateEventController;
+use App\Http\Controllers\NotificationController;
 //главная
 Route::get('/', [MainController::class, 'index'])->name('home');
 //вход/рег
@@ -29,6 +31,22 @@ Route::get('/event/{event_id}/games', [EventController::class, 'games'])->name('
 //редачить
 Route::get('/event/{event_id}/edit', [EventController::class, 'edit'])->name('event.edit');
 Route::post('/event/{event_id}/update', [EventController::class, 'update'])->name('event.update');
+// Приглашение игроков
+Route::get('/event/{event_id}/invite_players', [EventController::class, 'invitePlayers'])->name('event.invite_players');
+Route::post('/event/{event_id}/invite_players', [EventController::class, 'invitePlayerPost'])->name('event.invite_player.post');
+
 //my events
 // Мои события (сайдбар)
 Route::get('/my_events', [MyEventsController::class, 'index'])->name('my.events');
+// сделать ивент
+
+// Создание события
+Route::get('/create_event', [CreateEventController::class, 'showForm'])->name('create_event.form');
+Route::post('/create_event', [CreateEventController::class, 'store'])->name('create_event.store');
+
+// уведомления
+
+// Уведомления
+Route::get('/my_notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::get('/my_notifications/accept/{id}', [NotificationController::class, 'accept'])->name('notifications.accept');
+Route::get('/my_notifications/reject/{id}', [NotificationController::class, 'reject'])->name('notifications.reject');
