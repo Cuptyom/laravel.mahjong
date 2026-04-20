@@ -472,4 +472,161 @@ public function invitePlayers($eventId)
         
         return back()->with('success', 'Приглашение отправлено пользователю ' . $targetUser->user_name);
     }
+    // Управление пользователями события
+public function usersManagement($eventId)
+{
+    $event = DB::table('events')->where('event_id', $eventId)->first();
+    if (!$event) {
+        abort(404, 'Событие не найдено');
+    }
+    
+    $userId = request()->cookie('user_id');
+    if (!$userId) {
+        return redirect('/login')->with('error', 'Войдите в систему');
+    }
+    
+    // Проверяем, является ли пользователь администратором события
+    $userRole = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $userId)
+        ->value('status');
+    
+    if ($userRole !== 'admin') {
+        abort(403, 'У вас нет прав для управления пользователями в этом событии');
+    }
+    
+    // Получаем всех участников события с их данными
+    $participants = DB::table('event_players')
+        ->join('users', 'event_players.user_id', '=', 'users.user_id')
+        ->where('event_players.event_id', $eventId)
+        ->select(
+            'event_players.*',
+            'users.user_name',
+            'users.user_login',
+            'users.user_avatar',
+            'users.user_gmail'
+        )
+        ->get();
+    
+    $isAdmin = true;
+    $isParticipant = true;
+    
+    return view('event.users_management', compact('event', 'participants', 'isAdmin', 'isParticipant'));
+}
+
+// Обновление роли пользователя в событии
+public function updateUserRole(Request $request, $eventId)
+{
+    $event = DB::table('events')->where('event_id', $eventId)->first();
+    if (!$event) {
+        abort(404, 'Событие не найдено');
+    }
+    
+    $userId = request()->cookie('user_id');
+    if (!$userId) {
+        return redirect('/login')->with('error', 'Войдите в систему');
+    }
+    
+    // Проверяем, является ли пользователь администратором события
+    $userRole = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $userId)
+        ->value('status');
+    
+    if ($userRole !== 'admin') {
+        abort(403, 'У вас нет прав для изменения ролей');
+    }
+    
+    $targetUserId = $request->input('user_id');
+    $newRole = $request->input('role');
+    
+    // Проверяем, что роль допустима
+    if (!in_array($newRole, ['admin', 'judge', 'player'])) {
+        return back()->with('error', 'Недопустимая роль');
+    }
+    
+    // Нельзя изменить роль самому себе (чтобы не потерять админа)
+    if ($targetUserId == $userId) {
+        return back()->with('error', 'Нельзя изменить свою роль');
+    }
+    
+    // Проверяем, существует ли участник
+    $targetParticipant = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $targetUserId)
+        ->first();
+    
+    if (!$targetParticipant) {
+        return back()->with('error', 'Пользователь не участвует в этом событии');
+    }
+    
+    // Обновляем роль
+    DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $targetUserId)
+        ->update(['status' => $newRole]);
+    
+    $roleNames = [
+        'admin' => 'администратором',
+        'judge' => 'судьёй',
+        'player' => 'игроком'
+    ];
+    
+    return back()->with('success', 'Роль пользователя изменена на ' . $roleNames[$newRole]);
+}
+
+// Исключение пользователя из события
+public function removeUser(Request $request, $eventId)
+{
+    $event = DB::table('events')->where('event_id', $eventId)->first();
+    if (!$event) {
+        abort(404, 'Событие не найдено');
+    }
+    
+    $userId = request()->cookie('user_id');
+    if (!$userId) {
+        return redirect('/login')->with('error', 'Войдите в систему');
+    }
+    
+    // Проверяем, является ли пользователь администратором события
+    $userRole = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $userId)
+        ->value('status');
+    
+    if ($userRole !== 'admin') {
+        abort(403, 'У вас нет прав для исключения пользователей');
+    }
+    
+    $targetUserId = $request->input('user_id');
+    
+    // Нельзя исключить самого себя
+    if ($targetUserId == $userId) {
+        return back()->with('error', 'Нельзя исключить самого себя');
+    }
+    
+    // Проверяем, существует ли участник
+    $targetParticipant = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $targetUserId)
+        ->first();
+    
+    if (!$targetParticipant) {
+        return back()->with('error', 'Пользователь не участвует в этом событии');
+    }
+    
+    // Удаляем пользователя из события
+    DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $targetUserId)
+        ->delete();
+    
+    // Также удаляем все приглашения для этого пользователя на это событие
+    DB::table('event_invitation_notifications')
+        ->where('event_id', $eventId)
+        ->where('user_id', $targetUserId)
+        ->delete();
+    
+    return back()->with('success', 'Пользователь исключён из события');
+}
 }

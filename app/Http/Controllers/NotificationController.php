@@ -101,4 +101,20 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')
             ->with('success', 'Приглашение отклонено');
     }
+
+        // Получить количество непрочитанных уведомлений
+    public static function getUnreadCount()
+    {
+        $userId = request()->cookie('user_id');
+        if (!$userId) {
+            return 0;
+        }
+        
+        $count = DB::table('event_invitation_notifications')
+            ->where('user_id', $userId)
+            ->where('status', 'pending')
+            ->count();
+        
+        return $count;
+    }
 }

@@ -34,6 +34,13 @@ Route::post('/event/{event_id}/update', [EventController::class, 'update'])->nam
 // Приглашение игроков
 Route::get('/event/{event_id}/invite_players', [EventController::class, 'invitePlayers'])->name('event.invite_players');
 Route::post('/event/{event_id}/invite_players', [EventController::class, 'invitePlayerPost'])->name('event.invite_player.post');
+// юзер манагмент
+
+// Управление пользователями события (только для admin)
+Route::get('/event/{event_id}/users_management', [EventController::class, 'usersManagement'])->name('event.users_management');
+Route::post('/event/{event_id}/update_user_role', [EventController::class, 'updateUserRole'])->name('event.update_user_role');
+Route::post('/event/{event_id}/remove_user', [EventController::class, 'removeUser'])->name('event.remove_user');
+
 
 //my events
 // Мои события (сайдбар)
@@ -43,8 +50,6 @@ Route::get('/my_events', [MyEventsController::class, 'index'])->name('my.events'
 // Создание события
 Route::get('/create_event', [CreateEventController::class, 'showForm'])->name('create_event.form');
 Route::post('/create_event', [CreateEventController::class, 'store'])->name('create_event.store');
-
-// уведомления
 
 // Уведомления
 Route::get('/my_notifications', [NotificationController::class, 'index'])->name('notifications.index');

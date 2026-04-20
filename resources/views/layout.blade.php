@@ -112,6 +112,12 @@
                             <a class="nav-link {{ Route::currentRouteName() == 'home' ? 'active' : '' }}" href="{{ route('home') }}">
                                 🏠 Главная
                             </a>
+                            @php
+                            $unreadNotificationsCount = 0;
+                                if ($user) {
+                                    $unreadNotificationsCount = App\Http\Controllers\NotificationController::getUnreadCount();
+                                }
+                            @endphp
                             @if($user)
                                 <a class="nav-link {{ Route::currentRouteName() == 'my.events' ? 'active' : '' }}" href="{{ route('my.events') }}">
                                     📋 Мои события
@@ -122,9 +128,16 @@
                                 <a class="nav-link {{ Route::currentRouteName() == 'profile.show' ? 'active' : '' }}" href="{{ route('profile.show') }}">
                                     ✏️ Редактировать профиль
                                 </a>
-                                <a class="nav-link {{ Route::currentRouteName() == 'notifications.index' ? 'active' : '' }}" href="{{ route('notifications.index') }}">
-                                    🔔 Уведомления
-                                </a>
+                                <a class="nav-link {{ Route::currentRouteName() == 'notifications.index' ? 'active' : '' }}" 
+                               href="{{ route('notifications.index') }}" 
+                               style="position: relative;">
+                                🔔 Уведомления
+                                @if($unreadNotificationsCount > 0)
+                                    <span style="position: absolute; top: 8px; right: 30px; background-color: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 15px; font-weight: bold; min-width: 18px; text-align: center;">
+                                        {{ $unreadNotificationsCount }}
+                                    </span>
+                                @endif
+                            </a>
                             @endif
                         </nav>
                     </div>
