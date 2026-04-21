@@ -23,7 +23,7 @@ class UsersSeeder extends Seeder
                 'user_city' => '',
                 'user_phone' => null,
                 'user_gmail' =>'test@gmail.com',
-                'user_avatar' => 'default.jpg',
+                'user_avatar' => 'admin_avatar.png',
                 'user_status' => null,
             ]);
         DB::table('users')->insert([

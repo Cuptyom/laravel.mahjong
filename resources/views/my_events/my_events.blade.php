@@ -8,7 +8,7 @@
     
     @if(!$isAuthenticated)
         <div class="alert alert-warning">
-            🔒 Вы не вошли в систему. 
+             Вы не вошли в систему. 
             <a href="{{ route('login') }}" class="alert-link">Войдите</a>, чтобы просмотреть свои события.
         </div>
     @elseif($events->count() > 0)

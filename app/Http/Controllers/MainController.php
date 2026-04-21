@@ -23,9 +23,14 @@ class MainController extends Controller
         // Пагинация
         $events = $query->paginate(10);
         
+        // Добавляем каждому событию флаг is_local
+        foreach ($events as $event) {
+            $event->is_local = ($event->event_type == 'local');
+        }
+        
         return view('index', [
             'events' => $events,
-            'search' => $search
+            'search' => $search,
         ]);
     }
 }

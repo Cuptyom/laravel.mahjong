@@ -4,7 +4,8 @@
 
 @section('content')
 <div class="container-fluid px-0">
-    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin])
+    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin, 'isParticipant' => $isParticipant])
+    
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -31,6 +32,12 @@
                                 <label class="form-label">Стартовые очки</label>
                                 <input type="number" name="start_score" class="form-control" 
                                        value="{{ $event->start_score }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Минимальное количество игр</label>
+                                <input type="number" name="min_games" class="form-control" 
+                                       value="{{ $event->min_games }}" min="0" required>
+                                <small class="text-muted">Минимальное количество игр для отображения в фильтре "С минимумом игр"</small>
                             </div>
                         </div>
                         

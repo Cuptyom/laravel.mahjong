@@ -16,7 +16,6 @@
                             <p class="mb-1">
                                 Вас приглашают в <strong>{{ $notification->event_name }}</strong>
                             </p>
-                            <small class="text-muted">Получено: {{ date('d.m.Y H:i', strtotime($notification->created_at)) }}</small>
                         </div>
                         <div>
                             <a href="{{ route('notifications.accept', $notification->notification_id) }}" 

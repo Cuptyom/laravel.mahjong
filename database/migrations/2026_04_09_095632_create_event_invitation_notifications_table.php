@@ -13,7 +13,6 @@ class CreateEventInvitationNotificationsTable extends Migration
             $table->foreignId('user_id')->constrained('users', 'user_id')->onDelete('cascade');
             $table->foreignId('event_id')->constrained('events', 'event_id')->onDelete('cascade');
             $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
-            $table->timestamps();
             
             $table->unique(['user_id', 'event_id']);
         });

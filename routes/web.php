@@ -24,10 +24,17 @@ Route::post('/profile/update', [ProfileController::class, 'update'])->name('prof
 
 // Таблии ивентов
 // Страницы события
-Route::get('/event/{event_id}/rating', [EventController::class, 'rating'])->name('event.rating');
+// Рейтинг с сортировкой и фильтрацией
+Route::get('/event/{event_id}/{sort?}/{filter?}', [EventController::class, 'rating'])
+    ->where('sort', 'rating|avg_score')
+    ->where('filter', 'all|min_games')
+    ->name('event.rating');
 Route::get('/event/{event_id}/description', [EventController::class, 'description'])->name('event.description');
 Route::get('/event/{event_id}/rules', [EventController::class, 'rules'])->name('event.rules');
 Route::get('/event/{event_id}/games', [EventController::class, 'games'])->name('event.games');
+//удаление
+// Удаление игры (только для admin и judge)
+Route::delete('/event/{event_id}/game/{game_id}/delete', [EventController::class, 'deleteGame'])->name('event.delete_game');
 //редачить
 Route::get('/event/{event_id}/edit', [EventController::class, 'edit'])->name('event.edit');
 Route::post('/event/{event_id}/update', [EventController::class, 'update'])->name('event.update');

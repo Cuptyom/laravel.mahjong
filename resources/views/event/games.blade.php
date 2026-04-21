@@ -3,119 +3,195 @@
 @section('title', 'История игр - ' . $event->event_name)
 
 @section('content')
-<div class="container py-4">
-    <!-- Навигация по вкладкам -->
-    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin ?? false])
-
-    <!-- Список игр -->
-    @if($games->count() > 0)
-        @foreach($games as $game)
-            @php
-                $stats = ['ron' => 0, 'tsumo' => 0, 'draw' => 0, 'abortive' => 0];
-                if(isset($game->rounds)) {
-                    foreach ($game->rounds as $round) {
-                        if (in_array($round->round_end_type, ['ron', 'tsumo', 'draw', 'abortive-draw'])) {
-                            $stats[$round->round_end_type === 'abortive-draw' ? 'abortive' : $round->round_end_type]++;
-                        } else {
-                            $stats['draw']++;
-                        }
-                    }
-                }
-                $finalScores = [];
-                if (isset($game->rounds) && $game->rounds->isNotEmpty()) {
-                    $lastRound = $game->rounds->last();
-                    if(isset($lastRound->results)) {
-                        foreach ($lastRound->results as $result) {
-                            $finalScores[$result->user_id] = $result->points_sum ?? 0;
-                        }
-                    }
-                }
-            @endphp
-
-            <div class="card mb-3 game-card">
-                <div class="card-body p-3">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <div class="text-muted small mb-2">{{ date('d.m.Y', strtotime($game->game_date)) }}</div>
-                            <div class="d-flex flex-wrap gap-3">
-                                @if(isset($game->rounds) && $game->rounds->isNotEmpty() && isset($game->rounds->first()->results))
-                                    @foreach($game->rounds->first()->results as $result)
-                                        @php
-                                            $score = $finalScores[$result->user_id] ?? 0;
-                                            $scoreClass = $score >= 0 ? 'text-success' : 'text-danger';
-                                        @endphp
+<div class="container-fluid px-0">
+    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin, 'isParticipant' => $isParticipant])
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">🎮 История игр</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if($games->count() > 0)
+                        <div class="list-group list-group-flush">
+                            @foreach($games as $game)
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
                                         <div>
-                                            <strong>{{ $result->user_name ?? 'Неизвестный' }}</strong>
-                                            <span class="{{ $scoreClass }} fw-bold">{{ $score >= 0 ? '+' : '' }}{{ number_format($score) }}</span>
+                                            <h6 class="mb-1">Игра #{{ $game->game_id }}</h6>
+                                            <p class="mb-1 text-muted small">{{ date('d.m.Y H:i', strtotime($game->game_date)) }}</p>
+                                            <p class="mb-0 small">
+                                                <strong>Раундов:</strong> {{ $game->rounds->count() }}
+                                            </p>
                                         </div>
-                                    @endforeach
-                                @else
-                                    <div class="text-muted">Нет данных об игроках</div>
+                                        <div class="text-end">
+                                            @if($canDeleteGame)
+                                                <button type="button" class="btn btn-danger btn-sm" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteGameModal"
+                                                        data-game-id="{{ $game->game_id }}"
+                                                        data-game-date="{{ date('d.m.Y H:i', strtotime($game->game_date)) }}">
+                                                    🗑️ Отменить игру
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Детали раундов -->
+@if($game->rounds->count() > 0)
+    <div class="mt-3 pt-2 border-top">
+        <button class="btn btn-sm btn-outline-info toggle-rounds" data-game-id="{{ $game->game_id }}">
+            📋 Показать раунды ({{ $game->rounds->count() }})
+        </button>
+        <div class="rounds-details collapse mt-3" id="rounds-{{ $game->game_id }}">
+            <div class="card bg-light">
+                <div class="card-body p-3">
+                    @foreach($game->rounds as $round)
+                        <div class="round-item py-3 {{ !$loop->last ? 'border-bottom' : '' }}">
+                            <!-- Заголовок раунда -->
+                            <div class="fw-bold mb-2">
+                                {{ $round->round_name }}
+                                @if($round->round_end_type == 'abortive-draw')
+                                    <span class="badge bg-danger ms-2">Перераздача</span>
+                                @elseif($round->round_end_type == 'draw')
+                                    <span class="badge bg-secondary ms-2">Ничья</span>
+                                @elseif($round->round_end_type == 'nagasi-mangan')
+                                    <span class="badge bg-warning ms-2">Нагаши Манган</span>
+                                @elseif($round->round_end_type == 'ron')
+                                    <span class="badge bg-success ms-2">Рон</span>
+                                @elseif($round->round_end_type == 'tsumo')
+                                    <span class="badge bg-info ms-2">Цумо</span>
+                                @endif
+                                @if($round->renchan_count > 0)
+                                    <span class="badge bg-secondary ms-1">ренчан x{{ $round->renchan_count }}</span>
                                 @endif
                             </div>
-                        </div>
-                        <div class="col-md-4 text-md-end mt-2 mt-md-0">
-                            <span class="badge bg-secondary me-2">🎲 {{ isset($game->rounds) ? $game->rounds->count() : 0 }} раундов</span>
-                            <button class="btn btn-sm btn-outline-secondary toggle-rounds" data-game-id="{{ $game->game_id }}">
-                                📊 Ron: {{ $stats['ron'] }} | Tsumo: {{ $stats['tsumo'] }} | Draw: {{ $stats['draw'] }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="rounds-details collapse" id="rounds-{{ $game->game_id }}">
-                    <div class="card-body pt-0 border-top">
-                        <div class="small">
-                            @if(isset($game->rounds))
-                                @foreach($game->rounds as $round)
-                                    <div class="round-item py-2 border-bottom">
-                                        <div class="fw-bold">{{ $round->round_name ?? 'Неизвестный раунд' }}</div>
-                                        @if($round->round_end_type == 'abortive-draw')
-                                            @php $chomboPlayer = isset($round->results) ? $round->results->where('chombo', 1)->first() : null; @endphp
-                                            <div class="text-danger">⚠️ Перераздача (чомбо) — {{ $chomboPlayer->user_name ?? 'Неизвестный' }}</div>
-                                        @elseif(in_array($round->round_end_type, ['ron', 'tsumo']))
-                                            @php $winner = isset($round->results) ? $round->results->where('points_change', '>', 0)->first() : null; @endphp
-                                            @if($winner)
-                                                <div>
-                                                    🏆 {{ $winner->user_name ?? 'Неизвестный' }} — {{ $round->round_end_type == 'ron' ? 'на сбросе' : 'цумо' }}
-                                                    @if(isset($winner->riichi_bet) && $winner->riichi_bet) <span class="badge bg-danger">ричи</span> @endif
-                                                    <span class="float-end">{{ isset($winner->points_change) && $winner->points_change > 0 ? '+' : '' }}{{ $winner->points_change ?? 0 }}</span>
-                                                </div>
-                                            @endif
-                                            <div class="text-muted small">
-                                                @if(isset($round->results))
-                                                    @foreach($round->results->where('points_change', '<', 0) as $loser)
-                                                        {{ $loser->user_name ?? 'Неизвестный' }}: {{ $loser->points_change ?? 0 }}
-                                                        @if(isset($loser->riichi_bet) && $loser->riichi_bet) <span class="badge bg-danger">ричи</span> @endif
-                                                        @if(!$loop->last) | @endif
-                                                    @endforeach
-                                                @endif
-                                            </div>
-                                        @elseif($round->round_end_type == 'draw')
-                                            <div>🔄 Ничья (рюкёку)</div>
-                                        @elseif($round->round_end_type == 'nagasi-mangan')
-                                            <div>🌀 Нагаши манган</div>
-                                        @endif
-                                    </div>
-                                @endforeach
+                            
+                            <!-- Результаты всех игроков -->
+                            @if($round->round_end_type == 'abortive-draw')
+                                @php $chomboPlayer = $round->results->where('chombo', 1)->first(); @endphp
+                                <div class="alert alert-danger py-2 mb-0">
+                                    ⚠️ <strong>Чомбо!</strong> Перераздача из-за ошибки игрока 
+                                    <strong>{{ $chomboPlayer->user_name ?? 'Неизвестный' }}</strong>
+                                    @if($chomboPlayer && $chomboPlayer->riichi_bet)
+                                        (была ставка ричи)
+                                    @endif
+                                </div>
                             @else
-                                <div class="text-muted">Нет данных о раундах</div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Игрок</th>
+                                                <th class="text-center">Ставка ричи</th>
+                                                <th class="text-center">Нотен / Темпай</th>
+                                                <th class="text-center">Изменение очков</th>
+                                                <th class="text-center">Итоговые очки</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($round->results as $result)
+                                                <tr>
+                                                    <td>
+                                                        <strong>{{ $result->user_name }}</strong>
+                                                        <span class="text-muted ms-1">({{ $result->user_login }})</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($result->riichi_bet)
+                                                            <span class="badge bg-danger">Да</span>
+                                                        @else
+                                                            <span class="badge bg-secondary">Нет</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($round->round_end_type == 'draw' || $round->round_end_type == 'nagasi-mangan')
+                                                            @if($result->tempai)
+                                                                <span class="badge bg-success">Темпай</span>
+                                                            @else
+                                                                <span class="badge bg-secondary">Нотен</span>
+                                                            @endif
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($result->points_change > 0)
+                                                            <span class="text-success fw-bold">+{{ number_format($result->points_change) }}</span>
+                                                        @elseif($result->points_change < 0)
+                                                            <span class="text-danger fw-bold">{{ number_format($result->points_change) }}</span>
+                                                        @else
+                                                            <span class="text-muted">0</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <strong>{{ number_format($result->points_sum) }}</strong>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             @endif
                         </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
-        @endforeach
-
-        <div class="d-flex justify-content-center mt-4">
-            {{ $games->withQueryString()->links() }}
         </div>
-    @else
-        <div class="alert alert-info">В этом событии пока нет сыгранных игр.</div>
-    @endif
+    </div>
+@endif
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <div class="p-3">
+                            {{ $games->withQueryString()->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-5 text-muted">
+                            В этом событии пока нет сыгранных игр.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal подтверждения удаления -->
+<div class="modal fade" id="deleteGameModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите отменить эту игру?</p>
+                <p><strong>Игра #<span id="deleteGameId"></span></strong></p>
+                <p class="text-danger">Внимание! Это действие удалит:</p>
+                <ul>
+                    <li>Результаты всех раундов</li>
+                    <li>Все раунды игры</li>
+                    <li>Участников игры</li>
+                    <li>Саму игру</li>
+                </ul>
+                <p class="text-danger">Отменить это действие будет невозможно!</p>
+            </div>
+            <div class="modal-footer">
+                <form id="deleteGameForm" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-danger">Да, отменить игру</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+    // Скрипт для раскрытия/скрытия деталей раундов
     document.querySelectorAll('.toggle-rounds').forEach(button => {
         button.addEventListener('click', function() {
             const gameId = this.dataset.gameId;
@@ -125,39 +201,31 @@
             }
         });
     });
+    
+    // Скрипт для модального окна удаления
+    const deleteGameModal = document.getElementById('deleteGameModal');
+    if (deleteGameModal) {
+        deleteGameModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const gameId = button.getAttribute('data-game-id');
+            const gameDate = button.getAttribute('data-game-date');
+            
+            document.getElementById('deleteGameId').textContent = gameId;
+            const form = document.getElementById('deleteGameForm');
+            form.action = `/event/{{ $event->event_id }}/game/${gameId}/delete`;
+        });
+    }
 </script>
 
 <style>
-    .game-card {
-        transition: box-shadow 0.2s;
-    }
-    .game-card:hover {
-        box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-    }
-    .round-item:last-child {
-        border-bottom: none !important;
-    }
     .rounds-details.collapse {
         display: none;
     }
     .rounds-details.collapse.show {
         display: block;
     }
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        font-weight: 500;
-        border: none;
-        padding: 12px 20px;
-    }
-    .nav-tabs .nav-link:hover {
-        color: #0d6efd;
-        border-bottom: 2px solid #0d6efd;
-    }
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        font-weight: 600;
-        border-bottom: 2px solid #0d6efd;
-        background: transparent;
+    .round-item:last-child {
+        border-bottom: none !important;
     }
 </style>
 @endsection

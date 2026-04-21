@@ -3,27 +3,56 @@
 @section('title', 'Рейтинг - ' . $event->event_name)
 
 @section('content')
-<div class="container py-4">
-        <!-- Навигация по вкладкам -->
-    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin ?? false])
+<div class="container-fluid px-0">
+    @include('event.tabs', ['event' => $event, 'isAdmin' => $isAdmin, 'isParticipant' => $isParticipant, ])
     
-    <!-- Заголовок -->
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="display-5 fw-bold">{{ $event->event_name }}</h1>
-        <div class="mt-2">
-            @if($event->rating_table_visability == 1)
-                <span class="badge bg-success">
-                    🌍 Рейтинг доступен всем
-                </span>
-            @else
-                <span class="badge bg-warning text-dark">
-                    🔒 Рейтинг только для участников
-                </span>
-            @endif
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">{{ $event->event_name }}</h1>
+            <div class="mt-2">
+                @if($event->rating_table_visability == 1)
+                    <span class="badge bg-success">🌍 Рейтинг доступен всем</span>
+                @else
+                    <span class="badge bg-warning text-dark">🔒 Рейтинг только для участников</span>
+                @endif
+            </div>
         </div>
     </div>
-</div>
+    
+    <!-- Панель сортировки и фильтрации -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="btn-group" role="group">
+                            <a href="/event/{{ $event->event_id }}/rating/all" 
+                               class="btn btn-sm {{ $sort == 'rating' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                📊 По рейтингу
+                            </a>
+                            <a href="/event/{{ $event->event_id }}/avg_score/all" 
+                               class="btn btn-sm {{ $sort == 'avg_score' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                📈 По средним очкам
+                            </a>
+                        </div>
+                        
+                        <div class="btn-group" role="group">
+                            <a href="/event/{{ $event->event_id }}/{{ $sort }}/all" 
+                               class="btn btn-sm {{ $filter == 'all' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                👥 Все игроки
+                            </a>
+                            @if($event->min_games > 0)
+                                <a href="/event/{{ $event->event_id }}/{{ $sort }}/min_games" 
+                                   class="btn btn-sm {{ $filter == 'min_games' ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                    🎯 С минимумом игр (≥{{ $event->min_games }})
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Таблица рейтинга -->
     <div class="row">
@@ -36,8 +65,15 @@
                                 <tr>
                                     <th class="ps-4" style="width: 80px;">#</th>
                                     <th>Игрок</th>
-                                    <th class="text-end">Рейтинг</th>
+                                    <th class="text-end">
+                                        @if($sort == 'rating')
+                                            Рейтинг
+                                        @else
+                                            Средние очки
+                                        @endif
+                                    </th>
                                     <th class="text-end pe-4">Сыграно игр</th>
+                                    <th class="text-center">Статус</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,7 +91,11 @@
                                         </td>
                                         <td class="text-end fw-bold">
                                             <span class="badge bg-primary fs-6 px-3 py-2">
-                                                {{ number_format($player->rating) }}
+                                                @if($sort == 'rating')
+                                                    {{ number_format($player->rating) }}
+                                                @else
+                                                    {{ number_format($player->avg_score, 2) }}
+                                                @endif
                                             </span>
                                         </td>
                                         <td class="text-end pe-4">
@@ -63,11 +103,23 @@
                                                 {{ $player->games_played }}
                                             </span>
                                         </td>
+                                        <td class="text-center">
+                                            @if($player->is_excluded)
+                                                <span class="badge bg-danger">Исключён</span>
+                                            @else
+                                                <span class="badge bg-success">Участник</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center py-5 text-muted">
-                                            Нет данных о рейтинге. Ещё не сыграно ни одной игры.
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            Нет данных о рейтинге.
+                                            @if($filter == 'min_games' && $event->min_games > 0)
+                                                Нет игроков с количеством игр не менее {{ $event->min_games }}.
+                                            @else
+                                                Ещё не сыграно ни одной игры.
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforelse
@@ -79,27 +131,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    .table tbody tr:hover {
-        background-color: #f8f9fa;
-        cursor: pointer;
-    }
-    .nav-tabs .nav-link {
-        color: #6c757d;
-        font-weight: 500;
-        border: none;
-        padding: 12px 20px;
-    }
-    .nav-tabs .nav-link:hover {
-        color: #0d6efd;
-        border-bottom: 2px solid #0d6efd;
-    }
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        font-weight: 600;
-        border-bottom: 2px solid #0d6efd;
-        background: transparent;
-    }
-</style>
 @endsection

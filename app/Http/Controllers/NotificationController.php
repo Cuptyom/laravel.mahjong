@@ -24,7 +24,7 @@ class NotificationController extends Controller
                 'event_invitation_notifications.*',
                 'events.event_name'
             )
-            ->orderBy('event_invitation_notifications.created_at', 'desc')
+            ->orderBy('event_invitation_notifications.notification_id', 'desc')
             ->get();
         
         return view('my_notifications.my_notifications', compact('notifications'));
@@ -102,7 +102,7 @@ class NotificationController extends Controller
             ->with('success', 'Приглашение отклонено');
     }
 
-        // Получить количество непрочитанных уведомлений
+    // Получить количество непрочитанных уведомлений
     public static function getUnreadCount()
     {
         $userId = request()->cookie('user_id');

@@ -20,7 +20,6 @@
                                     <th>ID</th>
                                     <th>Пользователь</th>
                                     <th>Логин</th>
-                                    <th>Email</th>
                                     <th>Роль</th>
                                     <th>Действия</th>
                                 </tr>
@@ -39,7 +38,6 @@
                                             </div>
                                         </td>
                                         <td>{{ $participant->user_login }}</td>
-                                        <td>{{ $participant->user_gmail }}</td>
                                         <td>
                                             <form method="POST" action="{{ route('event.update_user_role', $event->event_id) }}" class="d-inline">
                                                 @csrf

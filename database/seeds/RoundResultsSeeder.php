@@ -41,7 +41,7 @@ class RoundResultsSeeder extends Seeder
                     'chombo' => rand(0, 1),
                     'tempai' => rand(0, 1),
                     'points_sum' => rand(-5000, 12000),
-                    'points_change' => rand(-100, 100),
+                    'points_change' => rand(-48, 48) * 1000,
                 ]);
                 $inserted++;
             }

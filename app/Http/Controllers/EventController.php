@@ -7,116 +7,145 @@ use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
-    public function rating($eventId)
-    {
-        $userId = request()->cookie('user_id');
-        $userRole = null;
-        if ($userId) {
-            $userEvent = DB::table('event_players')
-                ->where('event_id', $eventId)
-                ->where('user_id', $userId)
-                ->first();
-            if ($userEvent) {
-                $userRole = $userEvent->status;
-            }
-        }
-        $isAdmin = ($userRole === 'admin');
-        
-        // Проверяем, участвует ли пользователь в событии (для вкладки "Пригласить")
-        $isParticipant = DB::table('event_players')
+    public function rating($eventId, $sort = 'rating', $filter = 'all')
+{
+    $userId = request()->cookie('user_id');
+    $userRole = null;
+    if ($userId) {
+        $userEvent = DB::table('event_players')
             ->where('event_id', $eventId)
             ->where('user_id', $userId)
-            ->exists();
-
-        $event = DB::table('events')->where('event_id', $eventId)->first();
-        if (!$event) {
-            abort(404, 'Событие не найдено');
+            ->first();
+        if ($userEvent) {
+            $userRole = $userEvent->status;
         }
+    }
+    $isAdmin = ($userRole === 'admin');
+    
 
-        // Проверка доступа к рейтингу
-        $user = null;
-        if ($userId) {
-            $user = DB::table('users')->where('user_id', $userId)->first();
-        }
-        $canViewRating = true;
-        if ($event->rating_table_visability == 0) {
-            if (!$user) {
+    //является ли событие локальным
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
+
+    // Проверяем, участвует ли пользователь в событии
+    $isParticipant = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->where('user_id', $userId)
+        ->exists();
+
+    $event = DB::table('events')->where('event_id', $eventId)->first();
+    if (!$event) {
+        abort(404, 'Событие не найдено');
+    }
+
+    // Проверка доступа к рейтингу
+    $user = null;
+    if ($userId) {
+        $user = DB::table('users')->where('user_id', $userId)->first();
+    }
+    $canViewRating = true;
+    if ($event->rating_table_visability == 0) {
+        if (!$user) {
+            $canViewRating = false;
+        } else {
+            $isParticipantCheck = DB::table('event_players')
+                ->where('event_id', $eventId)
+                ->where('user_id', $userId)
+                ->exists();
+            if (!$isParticipantCheck) {
                 $canViewRating = false;
-            } else {
-                $isParticipantCheck = DB::table('event_players')
-                    ->where('event_id', $eventId)
-                    ->where('user_id', $userId)
-                    ->exists();
-                if (!$isParticipantCheck) {
-                    $canViewRating = false;
-                }
             }
         }
-        if (!$canViewRating) {
-            return view('event.rating_denied', compact('event'));
-        }
+    }
+    if (!$canViewRating) {
+        return view('event.rating_denied', compact('event'));
+    }
 
-        // 1. Получаем всех пользователей, которые либо есть в event_players,
-        //    либо имеют игры в этом событии
-        $participantsFromPlayers = DB::table('event_players')
-            ->where('event_id', $eventId)
-            ->pluck('user_id')
-            ->toArray();
+    // 1. Получаем всех пользователей, которые либо есть в event_players,
+    //    либо имеют игры в этом событии
+    $participantsFromPlayers = DB::table('event_players')
+        ->where('event_id', $eventId)
+        ->pluck('user_id')
+        ->toArray();
 
-        $participantsFromGames = DB::table('games')
-            ->join('game_results', 'games.game_id', '=', 'game_results.game_id')
-            ->where('games.event_id', $eventId)
-            ->pluck('game_results.user_id')
-            ->unique()
-            ->toArray();
+    $participantsFromGames = DB::table('games')
+        ->join('game_results', 'games.game_id', '=', 'game_results.game_id')
+        ->where('games.event_id', $eventId)
+        ->pluck('game_results.user_id')
+        ->unique()
+        ->toArray();
 
-        // Объединяем и убираем дубликаты
-        $allParticipantIds = array_unique(array_merge($participantsFromPlayers, $participantsFromGames));
+    // Объединяем и убираем дубликаты
+    $allParticipantIds = array_unique(array_merge($participantsFromPlayers, $participantsFromGames));
 
-        if (empty($allParticipantIds)) {
-            $ratingList = [];
-            return view('event.rating', compact('event', 'ratingList', 'isAdmin', 'isParticipant'));
-        }
-
-        // 2. Получаем сумму rating_change и количество игр для всех этих пользователей
-        $stats = DB::table('game_results')
-            ->join('games', 'game_results.game_id', '=', 'games.game_id')
-            ->where('games.event_id', $eventId)
-            ->whereIn('game_results.user_id', $allParticipantIds)
-            ->select(
-                'game_results.user_id',
-                DB::raw('SUM(game_results.rating_change) as total_rating'),
-                DB::raw('COUNT(*) as games_played')
-            )
-            ->groupBy('game_results.user_id')
-            ->get()
-            ->keyBy('user_id');
-
-        // 3. Формируем итоговый список
+    if (empty($allParticipantIds)) {
         $ratingList = [];
-        foreach ($allParticipantIds as $participantId) {
-            $playerData = DB::table('users')->where('user_id', $participantId)->first();
-            if (!$playerData) continue;
+        return view('event.rating', compact('event', 'ratingList', 'isAdmin', 'isParticipant', 'sort', 'filter', 'isLocal'));
+    }
 
-            $totalRating = isset($stats[$participantId]) ? $stats[$participantId]->total_rating : 0;
-            $gamesPlayed = isset($stats[$participantId]) ? $stats[$participantId]->games_played : 0;
+    // Получаем сумму rating_change и количество игр для всех этих пользователей
+    $stats = DB::table('game_results')
+        ->join('games', 'game_results.game_id', '=', 'games.game_id')
+        ->where('games.event_id', $eventId)
+        ->whereIn('game_results.user_id', $allParticipantIds)
+        ->select(
+            'game_results.user_id',
+            DB::raw('SUM(game_results.rating_change) as total_rating'),
+            DB::raw('COUNT(*) as games_played')
+        )
+        ->groupBy('game_results.user_id')
+        ->get()
+        ->keyBy('user_id');
 
-            $ratingList[] = (object)[
-                'user_id' => $participantId,
-                'user_name' => $playerData->user_name,
-                'user_avatar' => $playerData->user_avatar ?? 'default.jpg',
-                'rating' => $totalRating,
-                'games_played' => $gamesPlayed
-            ];
-        }
+    // Формируем итоговый список
+    $ratingList = [];
+    foreach ($allParticipantIds as $participantId) {
+        $playerData = DB::table('users')->where('user_id', $participantId)->first();
+        if (!$playerData) continue;
 
-        // 4. Сортируем по убыванию рейтинга
+        // Проверяем, есть ли пользователь в event_players
+        $isExcluded = !in_array($participantId, $participantsFromPlayers);
+        
+        $totalRating = isset($stats[$participantId]) ? $stats[$participantId]->total_rating : 0;
+        $gamesPlayed = isset($stats[$participantId]) ? $stats[$participantId]->games_played : 0;
+        
+        // Вычисляем средние очки
+        $avgScore = ($gamesPlayed > 0) ? round($totalRating / $gamesPlayed, 2) : 0;
+
+        $ratingList[] = (object)[
+            'user_id' => $participantId,
+            'user_name' => $playerData->user_name,
+            'user_avatar' => $playerData->user_avatar ?? 'default.jpg',
+            'rating' => $totalRating,
+            'games_played' => $gamesPlayed,
+            'avg_score' => $avgScore,
+            'is_excluded' => $isExcluded
+        ];
+    }
+
+    // Применяем фильтр по минимальному количеству игр
+    if ($filter == 'min_games' && $event->min_games > 0) {
+        $ratingList = array_filter($ratingList, function($player) use ($event) {
+            return $player->games_played >= $event->min_games;
+        });
+        // Переиндексируем массив после фильтрации
+        $ratingList = array_values($ratingList);
+    }
+
+    // Сортируем в зависимости от параметра $sort
+    if ($sort == 'avg_score') {
+        usort($ratingList, function($a, $b) {
+            return $b->avg_score <=> $a->avg_score;
+        });
+    } else {
+        // По умолчанию сортировка по рейтингу
         usort($ratingList, function($a, $b) {
             return $b->rating <=> $a->rating;
         });
-
-        return view('event.rating', compact('event', 'ratingList', 'isAdmin', 'isParticipant'));
     }
+
+    return view('event.rating', compact('event', 'ratingList', 'isAdmin', 'isParticipant', 'sort', 'filter', 'isLocal'));
+}
     
     public function description($eventId)
     {
@@ -131,6 +160,8 @@ class EventController extends Controller
                 $userRole = $userEvent->status;
             }
         }
+        $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
         $isAdmin = ($userRole === 'admin');
         
         // Проверяем, участвует ли пользователь в событии (для вкладки "Пригласить")
@@ -145,7 +176,7 @@ class EventController extends Controller
             abort(404, 'Событие не найдено');
         }
         
-        return view('event.description', compact('event', 'isAdmin', 'isParticipant'));
+        return view('event.description', compact('event', 'isAdmin', 'isParticipant', 'isLocal'));
     }
     
     public function rules($eventId)
@@ -161,6 +192,8 @@ class EventController extends Controller
                 $userRole = $userEvent->status;
             }
         }
+        $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
         $isAdmin = ($userRole === 'admin');
         
         // Проверяем, участвует ли пользователь в событии (для вкладки "Пригласить")
@@ -175,10 +208,10 @@ class EventController extends Controller
             abort(404, 'Событие не найдено');
         }
         
-        return view('event.rules', compact('event', 'isAdmin', 'isParticipant'));
+        return view('event.rules', compact('event', 'isAdmin', 'isParticipant', 'isLocal'));
     }
     
-    public function games(Request $request, $event_id)
+        public function games(Request $request, $event_id)
     {
         $userId = request()->cookie('user_id');
         $userRole = null;
@@ -192,13 +225,17 @@ class EventController extends Controller
             }
         }
         $isAdmin = ($userRole === 'admin');
+        $isJudge = ($userRole === 'judge');
+        
+        // Может удалять игру (admin или judge)
+        $canDeleteGame = ($isAdmin || $isJudge);
         
         // Проверяем, участвует ли пользователь в событии (для вкладки "Пригласить")
         $isParticipant = DB::table('event_players')
             ->where('event_id', $event_id)
             ->where('user_id', $userId)
             ->exists();
-        
+            
         // Проверяем, существует ли событие
         $event = DB::table('events')->where('event_id', $event_id)->first();
         
@@ -236,13 +273,64 @@ class EventController extends Controller
                 }
             }
         }
+        $isLocal = DB::table('events')
+        ->where('event_id', $event->event_id)->where('event_type', 'local')->exists();
         
         return view('event.games', [
-            'event' => $event,
-            'games' => $games,
-            'isAdmin' => $isAdmin,
-            'isParticipant' => $isParticipant,
-        ]);
+        'event' => $event,
+        'games' => $games,
+        'isAdmin' => $isAdmin,
+        'isParticipant' => $isParticipant,
+        'canDeleteGame' => $canDeleteGame,
+        'userRole' => $userRole,
+        'isLocal' => $isLocal
+    ]);
+    }
+    // Удаление игры и всех связанных данных
+    public function deleteGame($eventId, $gameId)
+    {
+        $userId = request()->cookie('user_id');
+        if (!$userId) {
+            return redirect('/login')->with('error', 'Войдите в систему');
+        }
+        $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
+        // Проверяем права (admin или judge)
+        $userRole = DB::table('event_players')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->value('status');
+        
+        if (!in_array($userRole, ['admin', 'judge'])) {
+            abort(403, 'У вас нет прав для удаления игр');
+        }
+        
+        // Проверяем, существует ли игра
+        $game = DB::table('games')->where('game_id', $gameId)->where('event_id', $eventId)->first();
+        if (!$game) {
+            return back()->with('error', 'Игра не найдена');
+        }
+        
+        // Удаляем всё связанные данные
+        // 1. Получаем все round_id для этой игры
+        $roundIds = DB::table('rounds')->where('game_id', $gameId)->pluck('round_id')->toArray();
+        
+        // 2. Удаляем результаты раундов
+        if (!empty($roundIds)) {
+            DB::table('round_results')->whereIn('round_id', $roundIds)->delete();
+        }
+        
+        // 3. Удаляем раунды
+        DB::table('rounds')->where('game_id', $gameId)->delete();
+        
+        // 4. Удаляем участников игры
+        DB::table('game_players')->where('game_id', $gameId)->delete();
+        
+        // 5. Удаляем саму игру
+        DB::table('games')->where('game_id', $gameId)->delete();
+        
+        return redirect()->route('event.games', $eventId)
+            ->with('success', 'Игра #' . $gameId . ' и все связанные с ней данные удалены');
     }
     
     // Страница редактирования события
@@ -270,70 +358,74 @@ class EventController extends Controller
         if ($userRole !== 'admin') {
             abort(403, 'У вас нет прав для редактирования этого события');
         }
-        
+        $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
         $isAdmin = true;
         
         // Для участника (админ тоже участник)
         $isParticipant = true;
         
-        return view('event.edit', compact('event', 'isAdmin', 'isParticipant'));
+        return view('event.edit', compact('event', 'isAdmin', 'isParticipant', 'isLocal'));
     }
 
     // Обработка обновления события
-    public function update(Request $request, $eventId)
-    {
-        $event = DB::table('events')->where('event_id', $eventId)->first();
-        
-        if (!$event) {
-            abort(404, 'Событие не найдено');
-        }
-        
-        // Проверяем права
-        $userId = request()->cookie('user_id');
-        $userRole = null;
-        if ($userId) {
-            $userEvent = DB::table('event_players')
-                ->where('event_id', $eventId)
-                ->where('user_id', $userId)
-                ->first();
-            if ($userEvent) {
-                $userRole = $userEvent->status;
-            }
-        }
-        
-        if ($userRole !== 'admin') {
-            abort(403, 'У вас нет прав для редактирования этого события');
-        }
-        
-        // Валидация
-        $request->validate([
-            'event_name' => 'required|string|max:255',
-            'event_description' => 'nullable|string',
-            'start_score' => 'required|integer',
-            'uma_1st' => 'required|integer',
-            'uma_2nd' => 'required|integer',
-            'uma_3rd' => 'required|integer',
-            'uma_4th' => 'required|integer',
-        ]);
-        
-        // Обновление
-        DB::table('events')
-            ->where('event_id', $eventId)
-            ->update([
-                'event_name' => $request->input('event_name'),
-                'event_description' => $request->input('event_description'),
-                'start_score' => $request->input('start_score'),
-                'uma_1st' => $request->input('uma_1st'),
-                'uma_2nd' => $request->input('uma_2nd'),
-                'uma_3rd' => $request->input('uma_3rd'),
-                'uma_4th' => $request->input('uma_4th'),
-            ]);
-        
-        return redirect()->route('event.rating', $eventId)
-            ->with('success', 'Событие успешно обновлено');
+    // Обработка обновления события
+public function update(Request $request, $eventId)
+{
+    $event = DB::table('events')->where('event_id', $eventId)->first();
+    
+    if (!$event) {
+        abort(404, 'Событие не найдено');
     }
     
-    // Страница приглашения игроков
+    // Проверяем права
+    $userId = request()->cookie('user_id');
+    $userRole = null;
+    if ($userId) {
+        $userEvent = DB::table('event_players')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->first();
+        if ($userEvent) {
+            $userRole = $userEvent->status;
+        }
+    }
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
+    if ($userRole !== 'admin') {
+        abort(403, 'У вас нет прав для редактирования этого события');
+    }
+    
+    // Валидация
+    $request->validate([
+        'event_name' => 'required|string|max:255',
+        'event_description' => 'nullable|string',
+        'start_score' => 'required|integer',
+        'min_games' => 'required|integer|min:0',  // ← добавили
+        'uma_1st' => 'required|integer',
+        'uma_2nd' => 'required|integer',
+        'uma_3rd' => 'required|integer',
+        'uma_4th' => 'required|integer',
+    ]);
+    
+    // Обновление
+    DB::table('events')
+        ->where('event_id', $eventId)
+        ->update([
+            'event_name' => $request->input('event_name'),
+            'event_description' => $request->input('event_description'),
+            'start_score' => $request->input('start_score'),
+            'min_games' => $request->input('min_games'),  // ← добавили
+            'uma_1st' => $request->input('uma_1st'),
+            'uma_2nd' => $request->input('uma_2nd'),
+            'uma_3rd' => $request->input('uma_3rd'),
+            'uma_4th' => $request->input('uma_4th'),
+        ]);
+    
+    return redirect()->route('event.rating', $eventId)
+        ->with('success', 'Событие успешно обновлено');
+}
+    
     // Страница приглашения игроков
 public function invitePlayers($eventId)
 {
@@ -356,7 +448,8 @@ public function invitePlayers($eventId)
     if (!$isParticipant) {
         abort(403, 'Вы не участвуете в этом событии');
     }
-    
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
     $search = request()->input('search');
     $users = collect();
     
@@ -401,7 +494,7 @@ public function invitePlayers($eventId)
         ->where('user_id', $userId)
         ->value('status') === 'admin';
     
-    return view('event.invite_players', compact('event', 'users', 'search', 'isAdmin', 'isParticipant'));
+    return view('event.invite_players', compact('event', 'users', 'search', 'isAdmin', 'isParticipant','isLocal'));
 }
 
     // Отправка приглашения
@@ -416,7 +509,8 @@ public function invitePlayers($eventId)
         if (!$event) {
             abort(404, 'Событие не найдено');
         }
-        
+        $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
         // Проверяем, участвует ли отправитель
         $isParticipant = DB::table('event_players')
             ->where('event_id', $eventId)
@@ -484,7 +578,8 @@ public function usersManagement($eventId)
     if (!$userId) {
         return redirect('/login')->with('error', 'Войдите в систему');
     }
-    
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
     // Проверяем, является ли пользователь администратором события
     $userRole = DB::table('event_players')
         ->where('event_id', $eventId)
@@ -511,7 +606,7 @@ public function usersManagement($eventId)
     $isAdmin = true;
     $isParticipant = true;
     
-    return view('event.users_management', compact('event', 'participants', 'isAdmin', 'isParticipant'));
+    return view('event.users_management', compact('event', 'participants', 'isAdmin', 'isParticipant', 'isLocal'));
 }
 
 // Обновление роли пользователя в событии
@@ -571,7 +666,8 @@ public function updateUserRole(Request $request, $eventId)
         'judge' => 'судьёй',
         'player' => 'игроком'
     ];
-    
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
     return back()->with('success', 'Роль пользователя изменена на ' . $roleNames[$newRole]);
 }
 
@@ -626,7 +722,8 @@ public function removeUser(Request $request, $eventId)
         ->where('event_id', $eventId)
         ->where('user_id', $targetUserId)
         ->delete();
-    
+    $isLocal = DB::table('Events')
+        ->where('event_id', $eventId)->where('event_type', 'local')->exists();
     return back()->with('success', 'Пользователь исключён из события');
 }
 }

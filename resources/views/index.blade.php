@@ -32,9 +32,9 @@
                         <div class="list-group-item list-group-item-action">
                             <div class="d-flex w-100 justify-content-between align-items-center">
                                 <div>
-                                    <a href="{{ route('event.rating', $event->event_id) }}" class="text-decoration-none">
-                                    <h5 class="mb-1 text-dark">{{ $event->event_name }}</h5>
-                                </a>
+                                    <a href="{{ route('event.rating', ['event_id' => $event->event_id, 'sort' => 'rating', 'filter' => 'all']) }}" class="text-decoration-none">
+                                        <h5 class="mb-1 text-dark">{{ $event->event_name }}</h5>
+                                    </a>
                                     <p class="mb-1 text-muted small">
                                         Тип: {{ $event->event_type }} | 
                                         Стартовый рейтинг: {{ number_format($event->start_score) }} |

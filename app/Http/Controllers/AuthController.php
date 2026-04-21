@@ -13,17 +13,20 @@ class AuthController extends Controller
     {
         return view('auth/login');
     }
-    
+
     public function login(Request $request)
     {
         $login = $request->input('login');
         $password = $request->input('password');
         
+
         $user = DB::table('users')
             ->where('user_login', $login)
             ->orWhere('user_gmail', $login)
             ->first();
-        
+        if(!$user){
+            return back()->with('error', 'Неверный Логин или Пароль!');
+        }
         if($user->user_status == 'Blocked'){
             return back()->with('error', 'Пользователь заблокирован!');
         }
@@ -87,7 +90,7 @@ class AuthController extends Controller
             'user_country' => null,
             'user_city' => null,
             'user_phone' => null,
-            'user_avatar' => null,
+            'user_avatar' => 'default.jpg',
             'user_status' => null,
         ]);
         

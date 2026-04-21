@@ -69,7 +69,7 @@
                     @if($user)
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                👤 {{ $user->user_name }}
+                                 {{ $user->user_name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ route('profile.show') }}">Мой профиль</a></li>
@@ -110,7 +110,7 @@
                         <h6 class="text-muted mb-3">МЕНЮ</h6>
                         <nav class="nav flex-column">
                             <a class="nav-link {{ Route::currentRouteName() == 'home' ? 'active' : '' }}" href="{{ route('home') }}">
-                                🏠 Главная
+                                 Главная
                             </a>
                             @php
                             $unreadNotificationsCount = 0;
@@ -120,18 +120,18 @@
                             @endphp
                             @if($user)
                                 <a class="nav-link {{ Route::currentRouteName() == 'my.events' ? 'active' : '' }}" href="{{ route('my.events') }}">
-                                    📋 Мои события
+                                     Мои события
                                 </a>
                                 <a class="nav-link {{ Route::currentRouteName() == 'create_event.form' ? 'active' : '' }}" href="{{ route('create_event.form') }}">
-                                    ➕ Создать событие
+                                     Создать событие
                                 </a>
                                 <a class="nav-link {{ Route::currentRouteName() == 'profile.show' ? 'active' : '' }}" href="{{ route('profile.show') }}">
-                                    ✏️ Редактировать профиль
+                                     Редактировать профиль
                                 </a>
                                 <a class="nav-link {{ Route::currentRouteName() == 'notifications.index' ? 'active' : '' }}" 
                                href="{{ route('notifications.index') }}" 
                                style="position: relative;">
-                                🔔 Уведомления
+                                 Уведомления
                                 @if($unreadNotificationsCount > 0)
                                     <span style="position: absolute; top: 8px; right: 30px; background-color: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 15px; font-weight: bold; min-width: 18px; text-align: center;">
                                         {{ $unreadNotificationsCount }}
