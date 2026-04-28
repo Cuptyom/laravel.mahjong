@@ -138,6 +138,13 @@
                                     </span>
                                 @endif
                             </a>
+                            <a class="nav-link" href="{{ route('current_game.create') }}">
+                                Создать игру
+                            </a>
+                            <a class="nav-link {{ Route::currentRouteName() == 'current_game.my_games' ? 'active' : '' }}" 
+                               href="{{ route('current_game.my_games') }}">
+                                Текущая игра
+                            </a>
                             @endif
                         </nav>
                     </div>
@@ -155,7 +162,7 @@
     
     <footer class="bg-white py-4 mt-5">
         <div class="container text-center text-muted">
-            <small>Mahjong Rating System &copy; {{ date('Y') }}</small>
+            <small>ееее рооооооооок</small>
         </div>
     </footer>
     

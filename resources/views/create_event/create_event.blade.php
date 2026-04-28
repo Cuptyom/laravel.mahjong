@@ -8,7 +8,7 @@
     
     @if(!$isAuthenticated)
         <div class="alert alert-warning">
-            🔒 Создание события недоступно. 
+            Создание события недоступно. 
             <a href="{{ route('login') }}" class="alert-link">Войдите в аккаунт</a>, чтобы создать событие.
         </div>
     @else

@@ -8,6 +8,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\MyEventsController;
 use App\Http\Controllers\CreateEventController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CurrentGameController;
 //главная
 Route::get('/', [MainController::class, 'index'])->name('home');
 //вход/рег
@@ -62,3 +63,15 @@ Route::post('/create_event', [CreateEventController::class, 'store'])->name('cre
 Route::get('/my_notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::get('/my_notifications/accept/{id}', [NotificationController::class, 'accept'])->name('notifications.accept');
 Route::get('/my_notifications/reject/{id}', [NotificationController::class, 'reject'])->name('notifications.reject');
+
+// Текущие игры
+Route::get('/create_game', [CurrentGameController::class, 'createForm'])->name('current_game.create');
+Route::get('/current_game/participants/{eventId}', [CurrentGameController::class, 'getParticipants']);
+Route::post('/current_game/store', [CurrentGameController::class, 'store'])->name('current_game.store');
+Route::get('/current_game/{eventId}', [CurrentGameController::class, 'show'])->name('current_game.show');
+// Мои текущие игры
+Route::get('/my_current_games', [CurrentGameController::class, 'myCurrentGames'])->name('current_game.my_games');
+
+Route::post('/current_game/{eventId}/add_round', [CurrentGameController::class, 'addRound'])->name('current_game.add_round');
+
+Route::post('/current_game/{eventId}/add_round', [CurrentGameController::class, 'addRound'])->name('current_game.add_round');
