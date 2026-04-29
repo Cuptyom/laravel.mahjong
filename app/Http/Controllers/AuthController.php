@@ -32,7 +32,7 @@ class AuthController extends Controller
         }
 
         if ($user && $password == $user->user_pass && $user->user_status != 'Blocked') {
-            Cookie::queue('user_id', $user->user_id, 43200); // куки
+            Cookie::queue('user_id', $user->user_id, 43200); // кукезззз
             return redirect('/')->with('success', 'Добро пожаловать, ' . $user->user_name . '!');
         }
         

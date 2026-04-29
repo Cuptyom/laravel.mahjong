@@ -28,25 +28,25 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">🀫 Восток (East)</label>
+                                    <label class="form-label">Восток</label>
                                     <select name="player_east" id="playerEast" class="form-select" required disabled>
                                         <option value="">-- Сначала выберите событие --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">🀫 Юг (South)</label>
+                                    <label class="form-label">Юг</label>
                                     <select name="player_south" id="playerSouth" class="form-select" required disabled>
                                         <option value="">-- Сначала выберите событие --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">🀫 Запад (West)</label>
+                                    <label class="form-label">Запад</label>
                                     <select name="player_west" id="playerWest" class="form-select" required disabled>
                                         <option value="">-- Сначала выберите событие --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">🀫 Север (North)</label>
+                                    <label class="form-label">Север</label>
                                     <select name="player_north" id="playerNorth" class="form-select" required disabled>
                                         <option value="">-- Сначала выберите событие --</option>
                                     </select>
@@ -86,7 +86,7 @@
     eventSelect.addEventListener('change', function() {
         const eventId = this.value;
         if (!eventId) {
-            // Если событие не выбрано, блокируем все select'ы
+            // Если событие не выбрано, блокируем все select
             [playerEast, playerSouth, playerWest, playerNorth].forEach(select => {
                 select.disabled = true;
                 select.innerHTML = '<option value="">-- Сначала выберите событие --</option>';

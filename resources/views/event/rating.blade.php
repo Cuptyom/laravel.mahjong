@@ -11,9 +11,9 @@
             <h1 class="display-5 fw-bold">{{ $event->event_name }}</h1>
             <div class="mt-2">
                 @if($event->rating_table_visability == 1)
-                    <span class="badge bg-success">🌍 Рейтинг доступен всем</span>
+                    <span class="badge bg-success">Рейтинг доступен всем</span>
                 @else
-                    <span class="badge bg-warning text-dark">🔒 Рейтинг только для участников</span>
+                    <span class="badge bg-warning text-dark">Рейтинг только для участников</span>
                 @endif
             </div>
         </div>
@@ -28,23 +28,23 @@
                         <div class="btn-group" role="group">
                             <a href="/event/{{ $event->event_id }}/rating/all" 
                                class="btn btn-sm {{ $sort == 'rating' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                                📊 По рейтингу
+                                По рейтингу
                             </a>
                             <a href="/event/{{ $event->event_id }}/avg_score/all" 
                                class="btn btn-sm {{ $sort == 'avg_score' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                                📈 По средним очкам
+                                По средним очкам
                             </a>
                         </div>
                         
                         <div class="btn-group" role="group">
                             <a href="/event/{{ $event->event_id }}/{{ $sort }}/all" 
                                class="btn btn-sm {{ $filter == 'all' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                                👥 Все игроки
+                                Все игроки
                             </a>
                             @if($event->min_games > 0)
                                 <a href="/event/{{ $event->event_id }}/{{ $sort }}/min_games" 
                                    class="btn btn-sm {{ $filter == 'min_games' ? 'btn-primary' : 'btn-outline-secondary' }}">
-                                    🎯 С минимумом игр (≥{{ $event->min_games }})
+                                     минимумом игр (≥{{ $event->min_games }})
                                 </a>
                             @endif
                         </div>

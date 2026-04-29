@@ -10,7 +10,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">⚙️ Редактирование события</h5>
+                    <h5 class="mb-0">Редактирование события</h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('event.update', $event->event_id) }}">

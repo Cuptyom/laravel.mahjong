@@ -51,7 +51,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('home') }}">
-                🀄 Mahjong Rating
+                Mahjong Rat(p)ing
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -159,12 +159,6 @@
 @endif
         </div>
     </div>
-    
-    <footer class="bg-white py-4 mt-5">
-        <div class="container text-center text-muted">
-            <small>ееее рооооооооок</small>
-        </div>
-    </footer>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>

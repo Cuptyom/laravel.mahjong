@@ -13,7 +13,7 @@
             <h1 class="display-5 fw-bold">{{ $event->event_name }}</h1>
             <div class="mt-2">
                 <span class="badge bg-warning text-dark">
-                    🔒 Рейтинг только для участников
+                    Рейтинг только для участников
                 </span>
             </div>
         </div>
@@ -25,7 +25,7 @@
             <div class="card shadow-sm border-0 rounded-4 bg-light">
                 <div class="card-body p-5 text-center">
                     <div class="mb-4">
-                        <span class="display-1">🔒</span>
+                        <span class="display-1">закрыто</span>
                     </div>
                     <h2 class="h3 mb-3">Вам не доступен этот рейтинг</h2>
                     <p class="text-muted mb-0">

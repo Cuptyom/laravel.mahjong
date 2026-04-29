@@ -20,11 +20,11 @@
                         <div>
                             <a href="{{ route('notifications.accept', $notification->notification_id) }}" 
                                class="btn btn-success btn-sm me-2">
-                                ✅ Принять
+                                Принять
                             </a>
                             <a href="{{ route('notifications.reject', $notification->notification_id) }}" 
                                class="btn btn-danger btn-sm">
-                                ❌ Отклонить
+                                Отклонить
                             </a>
                         </div>
                     </div>

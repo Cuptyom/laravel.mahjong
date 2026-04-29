@@ -10,7 +10,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">🎮 История игр</h5>
+                    <h5 class="mb-0">История игр</h5>
                 </div>
                 <div class="card-body p-0">
                     @if($games->count() > 0)
@@ -22,7 +22,7 @@
                                     <div class="d-flex w-100 justify-content-between align-items-start">
                                         <div>
                                             <h2 class="mb-1 text-primary">Игра #{{ $game->game_id }}</h2>
-                                            <p class="mb-1 text-muted small">{{ date('d.m.Y H:i', strtotime($game->game_date)) }}</p>
+                                            <p class="mb-1 text-muted small">{{ date('d.m.Y', strtotime($game->game_date)) }}</p>
                                             <p class="mb-2 small">
                                                 <strong>Раундов:</strong> {{ $game->rounds->count() }}
                                             </p>
@@ -34,7 +34,7 @@
                                                         data-bs-target="#deleteGameModal"
                                                         data-game-id="{{ $game->game_id }}"
                                                         data-game-date="{{ date('d.m.Y H:i', strtotime($game->game_date)) }}">
-                                                    🗑️ Отменить игру
+                                                    Отменить игру
                                                 </button>
                                             @endif
                                         </div>
@@ -68,7 +68,7 @@
                                                     @if($round->round_end_type == 'abortive-draw')
                                                         @php $chomboPlayer = $round->results->where('chombo', 1)->first(); @endphp
                                                         <div class="alert py-2 mb-0">
-                                                            ⚠️ <strong>Чомбо.</strong> Перераздача из-за ошибки игрока 
+                                                            <strong>Чомбо.</strong> Перераздача из-за ошибки игрока 
                                                             <strong>{{ $chomboPlayer->user_name ?? 'Неизвестный' }}</strong>
                                                             @if($chomboPlayer && $chomboPlayer->riichi_bet)
                                                                 (была ставка ричи)
