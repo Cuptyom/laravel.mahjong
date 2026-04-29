@@ -75,3 +75,6 @@ Route::get('/my_current_games', [CurrentGameController::class, 'myCurrentGames']
 Route::post('/current_game/{eventId}/add_round', [CurrentGameController::class, 'addRound'])->name('current_game.add_round');
 
 Route::post('/current_game/{eventId}/add_round', [CurrentGameController::class, 'addRound'])->name('current_game.add_round');
+Route::post('/current_game/{eventId}/finish', [CurrentGameController::class, 'finishGame'])->name('current_game.finish');
+
+Route::delete('/current_game/{eventId}/delete_round/{roundId}', [CurrentGameController::class, 'deleteRound'])->name('current_game.delete_round');

@@ -120,84 +120,81 @@
             </div>
             
             <!-- История раундов -->
-            <div class="row mt-5">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0">История раундов</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            @php
-                                $pastRounds = DB::table('current_rounds')
-                                    ->where('cur_game_id', $currentGame->cur_game_id)
-                                    ->where('serial_number', '>', 0)
-                                    ->orderBy('serial_number', 'asc')
-                                    ->get();
-                            @endphp
-                            
-                            @if($pastRounds->count() > 0)
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-hover mb-0">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>№</th>
-                                                <th>Раунд</th>
-                                                <th>Тип</th>
-                                                <th colspan="4">Результаты</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($pastRounds as $round)
-                                                @php
-                                                    $roundResults = DB::table('current_round_results')
-                                                        ->join('users', 'current_round_results.user_id', '=', 'users.user_id')
-                                                        ->where('cur_round_id', $round->cur_round_id)
-                                                        ->select('current_round_results.*', 'users.user_name')
-                                                        ->get();
-                                                @endphp
-                                                <tr class="table-secondary">
-                                                    <td colspan="6" class="py-2">
-                                                        <strong>Раунд {{ $round->serial_number }}: {{ $round->round_name }}</strong>
-                                                        <span class="badge bg-info ms-2">{{ $round->round_end_type }}</span>
-                                                        @if($round->renchan_count > 0)
-                                                            <span class="badge bg-warning ms-1">ренчан x{{ $round->renchan_count }}</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    @foreach($roundResults as $result)
-                                                        <td class="text-center" style="min-width: 120px;">
-                                                            <strong>{{ $result->user_name }}</strong>
-                                                            <div class="small text-muted">{{ $result->start_position }}</div>
-                                                            @if($result->points_change != 0)
-                                                                @if($result->points_change > 0)
-                                                                    <span class="text-success fw-bold">+{{ number_format($result->points_change) }}</span>
-                                                                @else
-                                                                    <span class="text-danger fw-bold">{{ number_format($result->points_change) }}</span>
-                                                                @endif
-                                                                <div class="small">→ {{ number_format($result->points_sum) }}</div>
-                                                            @else
-                                                                <div class="text-muted">0</div>
-                                                                <div class="small">{{ number_format($result->points_sum) }}</div>
-                                                            @endif
-                                                            @if($result->riichi_bet)
-                                                                <span class="badge bg-danger d-block mt-1">リーチ</span>
-                                                            @endif
-                                                        </td>
-                                                    @endforeach
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <div class="text-center py-4 text-muted">
-                                    Пока нет завершённых раундов
-                                </div>
-                            @endif
-                        </div>
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">📜 История раундов</h5>
+            </div>
+            <div class="card-body p-0">
+                @php
+                    $pastRounds = DB::table('current_rounds')
+                        ->where('cur_game_id', $currentGame->cur_game_id)
+                        ->where('serial_number', '>', 0)
+                        ->orderBy('serial_number', 'asc')
+                        ->get();
+                @endphp
+                
+                @if($pastRounds->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>№</th>
+                                    <th>Раунд</th>
+                                    <th>Тип</th>
+                                    <th colspan="4">Результаты</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pastRounds as $round)
+                                    @php
+                                        $roundResults = DB::table('current_round_results')
+                                            ->join('users', 'current_round_results.user_id', '=', 'users.user_id')
+                                            ->where('cur_round_id', $round->cur_round_id)
+                                            ->select('current_round_results.*', 'users.user_name')
+                                            ->get();
+                                    @endphp
+                                    <tr class="table-secondary">
+                                        <td colspan="7" class="py-2">
+                                            <strong>Раунд {{ $round->serial_number }}: {{ $round->round_name }}</strong>
+                                            <span class="badge bg-info ms-2">{{ $round->round_end_type }}</span>
+                                            @if($round->renchan_count > 0)
+                                                <span class="badge bg-warning ms-1">ренчан x{{ $round->renchan_count }}</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        @foreach($roundResults as $result)
+                                            <td class="text-center" style="min-width: 120px;">
+                                                <strong>{{ $result->user_name }}</strong>
+                                                <div class="small text-muted">{{ $result->start_position }}</div>
+                                                @if($result->points_change != 0)
+                                                    @if($result->points_change > 0)
+                                                        <span class="text-success fw-bold">+{{ number_format($result->points_change) }}</span>
+                                                    @else
+                                                        <span class="text-danger fw-bold">{{ number_format($result->points_change) }}</span>
+                                                    @endif
+                                                    <div class="small">→ {{ number_format($result->points_sum) }}</div>
+                                                @else
+                                                    <div class="text-muted">0</div>
+                                                    <div class="small">{{ number_format($result->points_sum) }}</div>
+                                                @endif
+                                                @if($result->riichi_bet)
+                                                    <span class="badge bg-danger d-block mt-1">リーチ</span>
+                                                @endif
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
+                @else
+                    <div class="text-center py-4 text-muted">
+                        Пока нет завершённых раундов
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -350,9 +347,6 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div class="alert alert-info">
-                            💡 Ничья: если 1 темпай — он получает 3000; если 2 — они получают по 1500; если 3 — нетемпай платит по 1000 каждому.
-                        </div>
                     </div>
                     
                     <div id="formNagashi" style="display: none;">
@@ -364,9 +358,6 @@
                                     <option value="{{ $player->user_id }}">{{ $player->user_name }} ({{ $player->start_position }})</option>
                                 @endforeach
                             </select>
-                        </div>
-                        <div class="alert alert-info">
-                            💡 Нагаши манган считается как цумо с 5 ханами.
                         </div>
                     </div>
                     
@@ -380,9 +371,6 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="alert alert-info">
-                            💡 Абортивная ничья: если виновный — восток, он платит каждому по 4000; иначе — востоку 4000, остальным по 2000.
-                        </div>
                     </div>
                 </form>
             </div>
@@ -395,6 +383,7 @@
 </div>
 
 <script>
+    // Показ/скрытие форм в зависимости от типа завершения
     const roundEndType = document.getElementById('roundEndType');
     const formWin = document.getElementById('formWin');
     const formDraw = document.getElementById('formDraw');
@@ -429,6 +418,7 @@
         }
     });
     
+    // Кнопка сохранения раунда
     document.getElementById('saveRoundBtn').addEventListener('click', function() {
         const roundEndTypeValue = roundEndType.value;
         
@@ -502,6 +492,74 @@
             saveBtn.textContent = 'Записать раунд';
         });
     });
+    
+    // Кнопка завершения игры
+    const finishGameBtn = document.getElementById('finishGameBtn');
+    if (finishGameBtn) {
+        finishGameBtn.addEventListener('click', function() {
+            if (!confirm('Вы уверены, что хотите завершить игру? Данные будут перенесены в архив и игра станет недоступна для редактирования.')) {
+                return;
+            }
+            
+            const finishBtn = document.getElementById('finishGameBtn');
+            finishBtn.disabled = true;
+            finishBtn.textContent = 'Завершение...';
+            
+            fetch(`/current_game/{{ $event->event_id }}/finish`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Игра успешно завершена!');
+                    window.location.href = `/event/{{ $event->event_id }}/games`;
+                } else if (data.error) {
+                    alert(data.error);
+                    finishBtn.disabled = false;
+                    finishBtn.textContent = 'Завершить игру';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при завершении игры');
+                finishBtn.disabled = false;
+                finishBtn.textContent = 'Завершить игру';
+            });
+        });
+    }
+    
+    // Функция удаления раунда
+    function deleteRound(roundId, roundName) {
+        if (!confirm(`Вы уверены, что хотите отменить раунд "${roundName}"? Это действие невозможно отменить.`)) {
+            return;
+        }
+        
+        const eventId = {{ $event->event_id }};
+        
+        fetch(`/current_game/${eventId}/delete_round/${roundId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else if (data.error) {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при удалении раунда');
+        });
+    }
 </script>
 
 <style>

@@ -561,4 +561,178 @@ class CurrentGameController extends Controller
         }
         return 'Extra ' . ($serialNumber - 15);
     }
+    public function finishGame($eventId)
+{
+    try {
+        $userId = request()->cookie('user_id');
+        
+        if (!$userId) {
+            return response()->json(['error' => 'Войдите в систему'], 401);
+        }
+        
+        // Получаем текущую игру
+        $currentGame = DB::table('current_games')
+            ->where('event_id', $eventId)
+            ->first();
+        
+        if (!$currentGame) {
+            return response()->json(['error' => 'Активная игра не найдена']);
+        }
+        
+        // Проверяем, что пользователь является участником этой игры
+        $isParticipant = DB::table('current_round_results')
+            ->join('current_rounds', 'current_round_results.cur_round_id', '=', 'current_rounds.cur_round_id')
+            ->where('current_rounds.cur_game_id', $currentGame->cur_game_id)
+            ->where('current_round_results.user_id', $userId)
+            ->exists();
+        
+        if (!$isParticipant) {
+            return response()->json(['error' => 'Вы не являетесь участником этой игры'], 403);
+        }
+        
+        // Получаем все раунды этой игры (кроме нулевого)
+        $rounds = DB::table('current_rounds')
+            ->where('cur_game_id', $currentGame->cur_game_id)
+            ->where('serial_number', '>', 0)
+            ->orderBy('serial_number', 'asc')
+            ->get();
+        
+        // Если нет ни одного завершённого раунда, не даём завершить игру
+        if ($rounds->isEmpty()) {
+            return response()->json(['error' => 'Нельзя завершить игру без сыгранных раундов']);
+        }
+        
+        // Получаем всех участников игры (позиции берём из первого раунда)
+        $firstRound = $rounds->first();
+        
+        $playersInfo = DB::table('current_round_results')
+            ->where('cur_round_id', $firstRound->cur_round_id)
+            ->select('user_id', 'start_position')
+            ->get()
+            ->keyBy('user_id');
+        
+        // Создаём основную запись в таблице games
+        $gameId = DB::table('games')->insertGetId([
+            'event_id' => $eventId,
+            'game_date' => $currentGame->game_date,
+        ]);
+        
+        // Создаём записи в game_players (участники игры)
+        foreach ($playersInfo as $playerId => $player) {
+            DB::table('game_players')->insert([
+                'game_id' => $gameId,
+                'user_id' => $playerId,
+                'start_position' => $player->start_position,
+            ]);
+        }
+        
+        // Для каждого раунда создаём запись в таблице rounds и переносим результаты
+        foreach ($rounds as $round) {
+            $newRoundId = DB::table('rounds')->insertGetId([
+                'game_id' => $gameId,
+                'serian_number' => $round->serial_number,
+                'round_name' => $round->round_name,
+                'round_end_type' => $round->round_end_type,
+                'renchan_count' => $round->renchan_count,
+            ]);
+            
+            $roundResults = DB::table('current_round_results')
+                ->where('cur_round_id', $round->cur_round_id)
+                ->get();
+            
+            foreach ($roundResults as $result) {
+                DB::table('round_results')->insert([
+                    'round_id' => $newRoundId,
+                    'user_id' => $result->user_id,
+                    'riichi_bet' => $result->riichi_bet,
+                    'dead_hand' => $result->dead_hand,
+                    'chombo' => $result->chombo,
+                    'tempai' => $result->tempai,
+                    'points_sum' => $result->points_sum,
+                    'points_change' => $result->points_change,
+                ]);
+            }
+        }
+        
+        // Удаляем временные данные
+        $allRounds = DB::table('current_rounds')
+            ->where('cur_game_id', $currentGame->cur_game_id)
+            ->get();
+        
+        foreach ($allRounds as $round) {
+            DB::table('current_round_results')
+                ->where('cur_round_id', $round->cur_round_id)
+                ->delete();
+        }
+        
+        DB::table('current_rounds')
+            ->where('cur_game_id', $currentGame->cur_game_id)
+            ->delete();
+        
+        DB::table('current_games')
+            ->where('cur_game_id', $currentGame->cur_game_id)
+            ->delete();
+        
+        return response()->json(['success' => true, 'game_id' => $gameId]);
+        
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Ошибка: ' . $e->getMessage()], 500);
+    }
+}
+public function deleteRound($eventId, $roundId)
+{
+    $userId = request()->cookie('user_id');
+    
+    if (!$userId) {
+        return response()->json(['error' => 'Войдите в систему'], 401);
+    }
+    
+    // Получаем игру
+    $currentGame = DB::table('current_games')
+        ->where('event_id', $eventId)
+        ->first();
+    
+    if (!$currentGame) {
+        return response()->json(['error' => 'Активная игра не найдена']);
+    }
+    
+    // Проверяем, что пользователь является участником
+    $isParticipant = DB::table('current_round_results')
+        ->join('current_rounds', 'current_round_results.cur_round_id', '=', 'current_rounds.cur_round_id')
+        ->where('current_rounds.cur_game_id', $currentGame->cur_game_id)
+        ->where('current_round_results.user_id', $userId)
+        ->exists();
+    
+    if (!$isParticipant) {
+        return response()->json(['error' => 'Вы не являетесь участником этой игры'], 403);
+    }
+    
+    // Получаем раунд для удаления
+    $roundToDelete = DB::table('current_rounds')
+        ->where('cur_round_id', $roundId)
+        ->where('cur_game_id', $currentGame->cur_game_id)
+        ->first();
+    
+    if (!$roundToDelete) {
+        return response()->json(['error' => 'Раунд не найден']);
+    }
+    
+    // Удаляем все раунды с этим serial_number и выше
+    DB::table('current_rounds')
+        ->where('cur_game_id', $currentGame->cur_game_id)
+        ->where('serial_number', '>=', $roundToDelete->serial_number)
+        ->delete();
+    
+    // Удаляем соответствующие результаты (через join или подзапрос)
+    DB::table('current_round_results')
+        ->whereIn('cur_round_id', function($query) use ($currentGame, $roundToDelete) {
+            $query->select('cur_round_id')
+                ->from('current_rounds')
+                ->where('cur_game_id', $currentGame->cur_game_id)
+                ->where('serial_number', '>=', $roundToDelete->serial_number);
+        })
+        ->delete();
+    
+    return response()->json(['success' => true]);
+}
 }
